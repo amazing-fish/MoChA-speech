@@ -1,0 +1,34 @@
+speech_recognition_project/
+│
+├── data/
+│   ├── raw_data/
+│   │   ├── train/
+│   │   ├── dev/
+│   │   └── test/
+│   │
+│   └── preprocessed_data/
+│       ├── train/
+│       ├── dev/
+│       └── test/
+│
+├── src/
+│   ├── __init__.py
+│   ├── config.py
+│   ├── data_utils.py
+│   ├── model.py
+│   ├── attention.py
+│   ├── train.py
+│   └── evaluate.py
+│
+├── notebooks/
+│   ├── data_exploration.ipynb
+│   ├── model_training.ipynb
+│   └── model_evaluation.ipynb
+│
+├── models/
+│   └── saved_models/
+│
+├── logs/
+│   └── training_logs/
+│
+└── README.md
