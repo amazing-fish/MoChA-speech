@@ -41,9 +41,9 @@ class Decoder(tf.keras.Model):
         output_logits = self.output_projection(combined_outputs)
         return output_logits, hidden_states
 
-class Seq2SeqModel(tf.keras.Model):
+class MoChAASR(tf.keras.Model):
     def __init__(self, input_dim, output_dim, hidden_dim, num_layers, chunk_size, dropout_rate):
-        super(Seq2SeqModel, self).__init__()
+        super(MoChAASR, self).__init__()
         self.encoder = Encoder(input_dim, hidden_dim, num_layers, dropout_rate)
         self.decoder = Decoder(output_dim, hidden_dim, num_layers, chunk_size, dropout_rate)
 
