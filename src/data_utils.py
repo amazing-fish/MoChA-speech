@@ -1,90 +1,57 @@
 import os
 import librosa
 import numpy as np
-from tqdm import tqdm
+from sklearn.preprocessing import StandardScaler
 
-def preprocess_data(data_type, source_dir, target_dir, n_mels=80, sr=16000, n_fft=400, hop_length=160, top_db=20):
-    """
-    Preprocess the LibriSpeech dataset and store the log-mel features as NumPy arrays.
+def extract_mfcc(file_path, n_mfcc=13):
+    y, sr = librosa.load(file_path, sr=None)
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=n_mfcc)
+    mfcc = mfcc.T
 
-    Args:
-        data_type (str): "train", "dev", or "test".
-        source_dir (str): Path to the raw data directory.
-        target_dir (str): Path to the preprocessed data directory.
-        n_mels (int): Number of mel filters.
-        sr (int): Sampling rate of audio.
-        n_fft (int): Number of FFT components.
-        hop_length (int): Hop length for FFT.
-        top_db (int): Top decibels to remove noise from audio.
-    """
+    # Standardize MFCC features
+    scaler = StandardScaler()
+    mfcc = scaler.fit_transform(mfcc)
 
-    data_path = os.path.join(source_dir, data_type)
-    output_path = os.path.join(target_dir, data_type)
-    os.makedirs(output_path, exist_ok=True)
+    return mfcc
+def process_audio_files(src_path, dst_path, dataset_type):
+    for root, dirs, files in os.walk(src_path):
+        for file in files:
+            if file.endswith('.flac'):
+                file_path = os.path.join(root, file)
+                mfcc = extract_mfcc(file_path)
+                file_id = file[:-5]
+                speaker_id = root.split(os.path.sep)[-2]
+                dest_folder = os.path.join(dst_path, speaker_id)
+                os.makedirs(dest_folder, exist_ok=True)
+                np.save(os.path.join(dest_folder, file_id + '.npy'), mfcc)
 
-    for speaker in tqdm(os.listdir(data_path)):
-        speaker_path = os.path.join(data_path, speaker)
+def process_transcripts(src_path, dst_path, dataset_type):
+    for root, dirs, files in os.walk(src_path):
+        for file in files:
+            if file.endswith('.txt'):
+                file_path = os.path.join(root, file)
+                speaker_id = root.split(os.path.sep)[-2]
+                dest_folder = os.path.join(dst_path, speaker_id)
+                os.makedirs(dest_folder, exist_ok=True)
+                with open(file_path, 'r') as transcript_file:
+                    lines = transcript_file.readlines()
+                    for line in lines:
+                        file_id, text = line.strip().split(' ', 1)
+                        dest_file_path = os.path.join(dest_folder, file_id + '.txt')
+                        with open(dest_file_path, 'w') as dest_file:
+                            dest_file.write(text)
 
-        for chapter in os.listdir(speaker_path):
-            chapter_path = os.path.join(speaker_path, chapter)
-            chapter_output_path = os.path.join(output_path, f"{speaker}-{chapter}")
-            os.makedirs(chapter_output_path, exist_ok=True)
+def preprocess_librispeech(src_path, dst_path):
+    for dataset_type in ['train', 'dev', 'test']:
+        process_audio_files(os.path.join(src_path, dataset_type),
+                            os.path.join(dst_path, dataset_type),
+                            dataset_type)
+        process_transcripts(os.path.join(src_path, dataset_type),
+                            os.path.join(dst_path, dataset_type),
+                            dataset_type)
 
-            for file in os.listdir(chapter_path):
-                if file.endswith(".txt"):
-                    continue
-
-                audio_path = os.path.join(chapter_path, file)
-                audio, _ = librosa.load(audio_path, sr=sr)
-                mel_spec = librosa.feature.melspectrogram(audio, sr=sr, n_fft=n_fft, hop_length=hop_length, n_mels=n_mels)
-                log_mel_spec = librosa.power_to_db(mel_spec, top_db=top_db)
-                np.save(os.path.join(chapter_output_path, f"{os.path.splitext(file)[0]}.npy"), log_mel_spec)
-
-def process_transcripts(data_type, source_dir, target_dir):
-    """
-    Process the LibriSpeech dataset transcripts and store them as text files.
-
-    Args:
-        data_type (str): "train", "dev", or "test".
-        source_dir (str): Path to the raw data directory.
-        target_dir (str): Path to the preprocessed data directory.
-    """
-
-    data_path = os.path.join(source_dir, data_type)
-    output_path = os.path.join(target_dir, data_type)
-    os.makedirs(output_path, exist_ok=True)
-
-    for speaker in tqdm(os.listdir(data_path)):
-        speaker_path = os.path.join(data_path, speaker)
-
-        for chapter in os.listdir(speaker_path):
-            chapter_path = os.path.join(speaker_path, chapter)
-            chapter_output_path = os.path.join(output_path, f"{speaker}-{chapter}")
-            os.makedirs(chapter_output_path, exist_ok=True)
-
-            for file in os.listdir(chapter_path):
-                if not file.endswith(".txt"):
-                    continue
-
-                transcript_path = os.path.join(chapter_path, file)
-
-                with open(transcript_path, "r") as f:
-                    lines = f.readlines()
-
-                for line in lines:
-                    file_id, transcript = line.strip().split(" ", 1)
-                    transcript_output_path = os.path.join(chapter_output_path, f"{file_id}.txt")
-
-                    with open(transcript_output_path, "w") as f_out:
-                        f_out.write(transcript)
 
 if __name__ == "__main__":
-    source_dir = "data/raw_data"
-    target_dir = "data/preprocessed_data"
-
-    for data_type in ["train", "dev", "test"]:
-        print(f"Preprocessing {data_type} data...")
-        preprocess_data(data_type, source_dir, target_dir)
-        process_transcripts(data_type, source_dir, target_dir)
-        print(f"{data_type.capitalize()} data preprocessing completed!")
-
+    src_path = r'E:\Project\Python\MoChA-speech\data\raw_data\LibriSpeech'
+    dst_path = r'E:\Project\Python\MoChA-speech\data\preprocessed_data'
+    preprocess_librispeech(src_path, dst_path)
