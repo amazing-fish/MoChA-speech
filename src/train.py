@@ -1,7 +1,7 @@
 import os
 import tensorflow as tf
 from data_utils import load_data, create_dataset
-from model import Seq2SeqModel
+from model import MoChAASR
 from config import Config
 
 
@@ -15,7 +15,7 @@ def main():
     test_dataset = create_dataset(test_data, Config.batch_size)
 
     # Initialize model
-    model = Seq2SeqModel(Config.input_dim, Config.output_dim, Config.hidden_dim, Config.num_layers, Config.chunk_size,
+    model = MoChAASR(Config.input_dim, Config.output_dim, Config.hidden_dim, Config.num_layers, Config.chunk_size,
                          Config.dropout_rate)
 
     # Set loss function and optimizer
