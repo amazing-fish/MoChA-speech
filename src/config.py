@@ -1,6 +1,6 @@
 class Config:
     # Data
-    data_path = 'data/preprocessed_data/'
+    data_path = r'E:\Project\Python\MoChA-speech\data\preprocessed_data'
     train_data = 'train'
     dev_data = 'dev'
     test_data = 'test'
@@ -25,5 +25,10 @@ class Config:
     beam_width = 10  # Beam width for beam search during evaluation
 
     # Checkpoints and logging
-    model_dir = 'models/saved_models'
-    log_dir = 'logs/training_logs'
+    model_dir = r'E:\Project\Python\MoChA-speech\models\saved_models'
+    log_dir = r'E:\Project\Python\MoChA-speech\logs\training_logs'
+
+    # Character set and mapping
+    char_set = ['<blank>'] + list('abcdefghijklmnopqrstuvwxyz') + [' ']
+    index2char = {index: char for index, char in enumerate(char_set)}
+    char2index = {char: index for index, char in enumerate(char_set)}
