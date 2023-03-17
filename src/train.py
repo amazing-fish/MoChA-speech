@@ -16,7 +16,7 @@ def main():
 
     # Initialize model
     model = MoChAASR(Config.input_dim, Config.output_dim, Config.hidden_dim, Config.num_layers, Config.chunk_size,
-                         Config.dropout_rate)
+                     Config.dropout_rate)
 
     # Set loss function and optimizer
     loss_fn = tf.keras.losses.CategoricalCrossentropy()
