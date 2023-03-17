@@ -83,9 +83,16 @@ def load_data(data_path):
     return train_data, dev_data, test_data
 
 
-def pad_sequence(sequences, max_length, padding_value=0):
-    return np.array(
-        [np.pad(seq, (0, max_length - len(seq)), mode='constant', constant_values=padding_value) for seq in sequences])
+def pad_sequence(sequences, max_length=None, padding_value=0):
+    if max_length is None:
+        max_length = max([len(seq) for seq in sequences])
+
+    padded_sequences = []
+    for seq in sequences:
+        padded_seq = np.pad(seq, ((0, max_length - len(seq)), (0, 0)), mode='constant', constant_values=padding_value)
+        padded_sequences.append(padded_seq)
+
+    return np.array(padded_sequences, dtype=object)
 
 
 def create_dataset(data, batch_size):
