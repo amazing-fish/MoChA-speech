@@ -1,5 +1,6 @@
 import tensorflow as tf
-from attention import MoChAAttention
+from .attention import MoChA
+
 
 class Encoder(tf.keras.Model):
     def __init__(self, input_dim, hidden_dim, num_layers, dropout_rate):
@@ -19,6 +20,7 @@ class Encoder(tf.keras.Model):
         outputs, *hidden_states = self.rnn(projected_inputs)
         return outputs, hidden_states
 
+
 class Decoder(tf.keras.Model):
     def __init__(self, output_dim, hidden_dim, num_layers, chunk_size, dropout_rate):
         super(Decoder, self).__init__()
@@ -30,7 +32,7 @@ class Decoder(tf.keras.Model):
             return_state=True,
             dropout=dropout_rate,
         )
-        self.mocha_attention = MoChAAttention(chunk_size)
+        self.mocha_attention = MoChA(chunk_size)
         self.output_projection = tf.keras.layers.Dense(output_dim)
 
     def call(self, inputs, encoder_outputs, initial_states=None):
@@ -40,6 +42,7 @@ class Decoder(tf.keras.Model):
         combined_outputs = tf.concat([rnn_outputs, context_vectors], axis=-1)
         output_logits = self.output_projection(combined_outputs)
         return output_logits, hidden_states
+
 
 class MoChAASR(tf.keras.Model):
     def __init__(self, input_dim, output_dim, hidden_dim, num_layers, chunk_size, dropout_rate):
